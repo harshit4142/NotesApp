@@ -5,19 +5,31 @@ import dotenv from "dotenv";
 import rateLimiter from "./middleware/rateLimiter.js";
 import cors from "cors";
 dotenv.config();
+import path from "path";
 
 
 const app = express();
 const PORT = process.env.PORT || 4142;
+const __dirname = path.resolve();
 
 
 
-
+if(process.env.NODE_ENV !== "production") {
 app.use(cors());
+}
 app.use(express.json());
 app.use(rateLimiter);
 
 app.use("/api/notes", noteRoutes);
+
+if(process.env.NODE_ENV === "production") {
+
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+})
+}
 
 connectDB().then(() => {
 
